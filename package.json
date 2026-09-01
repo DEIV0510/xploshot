@@ -1,0 +1,17 @@
+{
+  "name": "xploshot",
+  "version": "1.0.0",
+  "description": "XPLOSHOT - shots moleculares encapsulados",
+  "main": "index.js",
+  "scripts": {
+    "start": "node serve.js",
+    "build:assets": "node build-assets.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "sharp": "^0.35.3"
+  }
+}
