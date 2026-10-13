@@ -61,35 +61,26 @@ async function run() {
   await saveBoth(sharp(path.join(RAW, 'studio-green-splash.jpg')).resize({ width: 1600 }), 'cta-bg', { jpgQ: 78, webpQ: 74 });
   await saveBoth(coverResize(path.join(RAW, 'studio-icebucket1.jpg'), 1400, 1050), 'destacado-bg', { jpgQ: 80, webpQ: 76 });
 
-  /* ================= FLAVOR CARDS ================= */
-  // Recorte comun de las 9 tarjetas de sabor generadas con la misma plantilla:
-  // aisla la foto del frasco (sin el badge de nombre inferior).
-  const CARD_CROP = { left: 240, top: 460, width: 600, height: 650 };
-  const FLAVORS = [
-    { n: 1, slug: 'maracumango' },
-    { n: 2, slug: 'bombonbum' },
-    { n: 3, slug: 'tropical' },
-    { n: 4, slug: 'nebuloso' },
-    { n: 5, slug: 'sandia' },
-    { n: 6, slug: 'blueice' },
-    { n: 7, slug: 'guaropink' },
-    { n: 8, slug: 'blueberry' },
-    { n: 9, slug: 'smirnoff' },
+  /* ================= PRODUCTOS (carpeta Xploshot2) ================= */
+  // Una foto cuadrada por producto, con el nombre del sabor ya en la imagen.
+  // Dos tamanos: -sm para la tarjeta (srcset) y el grande para el modal.
+  const V2 = path.join(RAW, 'v2');
+  const PRODUCTS = [
+    'premium-tamarindo',
+    'clasico-smirnoff', 'clasico-guaropink', 'clasico-bombonbum', 'clasico-blueice', 'clasico-nebuloso',
+    'clasico-tropical', 'clasico-maracumango', 'clasico-blueberry', 'clasico-sandia',
+    'sinlicor-bombonbum', 'sinlicor-chicle', 'sinlicor-sandia', 'sinlicor-tropical', 'sinlicor-maracumango', 'sinlicor-blueberry',
   ];
-  for (const f of FLAVORS) {
-    const src = path.join(RAW, `flavorcard-${f.n}.jpg`);
-    const cropped = sharp(src).extract(CARD_CROP).resize({ width: 720 });
-    await saveBoth(cropped, `flavor-${f.slug}`, { jpgQ: 82, webpQ: 78 });
+  for (const slug of PRODUCTS) {
+    const src = path.join(V2, `${slug}.png`);
+    await saveBoth(sharp(src).resize({ width: 800 }), `p-${slug}`, { jpgQ: 80, webpQ: 76 });
+    await saveBoth(sharp(src).resize({ width: 420 }), `p-${slug}-sm`, { jpgQ: 78, webpQ: 74 });
   }
-  // Premium (Smirnoff Tamarindo): mismo frasco base "smirnoff" -- el badge
-  // "NUEVO PREMIUM" y el acento dorado en la tarjeta lo diferencian.
-  const tamarindoBase = sharp(path.join(RAW, 'flavorcard-9.jpg')).extract(CARD_CROP).resize({ width: 720 });
-  await saveBoth(tamarindoBase, 'flavor-tamarindo', { jpgQ: 82, webpQ: 78 });
 
   /* ================= PASOS (como funciona) ================= */
-  await saveBoth(sharp(path.join(RAW, 'studio-red-macro.jpg')).resize({ width: 900 }), 'step-destapa', { jpgQ: 80 });
-  await saveBoth(sharp(path.join(RAW, 'flavorcard-10.jpg')).resize({ width: 900 }), 'step-sirve', { jpgQ: 80 });
-  await saveBoth(coverResize(path.join(RAW, 'macro-teal.jpg'), 900, 900), 'step-disfruta', { jpgQ: 80 });
+  for (const step of ['destapa', 'sirve', 'disfruta']) {
+    await saveBoth(sharp(path.join(V2, `step-${step}.png`)).resize({ width: 640 }), `step-${step}`, { jpgQ: 80, webpQ: 76 });
+  }
 
   /* ================= MOMENTOS ================= */
   await saveBoth(coverResize(path.join(RAW, 'life-fogata1.jpg'), 800, 1000), 'moment-casa', { jpgQ: 78 });

@@ -7,46 +7,47 @@
      Catalogo — precios y sabores reales de XPLOSHOT
   ========================================================= */
   const PRODUCTS = [
-    { id: 'nuevo-tamarindo', category: 'premium', badge: 'NUEVO', name: 'Smirnoff Tamarindo', spirit: 'Vodka', emoji: '🌶️', price: 54900, img: 'flavor-tamarindo',
-      desc: 'Vodka Smirnoff con un giro tropical y picante: tamarindo intenso en cada perla. La incorporación más nueva a la familia XPLOSHOT.' },
+    { id: 'nuevo-tamarindo', category: 'premium', badge: 'NUEVO', name: 'Smirnoff Tamarindo', spirit: 'Vodka', emoji: '🌶️', price: 54900, img: 'p-premium-tamarindo',
+      desc: 'Vodka Smirnoff con tamarindo y un toque picante en cada perla.' },
 
-    { id: 'clasico-smirnoff', category: 'clasico', name: 'Smirnoff', spirit: 'Vodka', price: 49900, img: 'flavor-smirnoff',
-      desc: 'El clásico vodka Smirnoff, limpio y directo, encapsulado en perlas listas para explotar.' },
-    { id: 'clasico-guaropink', category: 'clasico', name: 'Guaro Pink', spirit: 'Aguardiente y cereza', price: 49900, img: 'flavor-guaropink',
-      desc: 'Aguardiente con cereza: dulce, intenso y del color más llamativo del catálogo.' },
-    { id: 'clasico-bombonbum', category: 'clasico', name: 'Bombonbum', spirit: 'Vodka', price: 49900, img: 'flavor-bombonbum',
-      desc: 'Vodka con sabor a bombón: la explosión más golosa de todas.' },
-    { id: 'clasico-blueice', category: 'clasico', name: 'Blue Ice', spirit: 'Aguardiente', price: 49900, img: 'flavor-blueice',
-      desc: 'Aguardiente azul, fresco y helado: el sabor insignia de XPLOSHOT.' },
-    { id: 'clasico-nebuloso', category: 'clasico', name: 'Nebuloso', spirit: 'Ron + Menta', price: 49900, img: 'flavor-nebuloso',
-      desc: 'Ron con un toque de menta: fresco, envolvente y distinto a todo lo demás.' },
-    { id: 'clasico-tropical', category: 'clasico', name: 'Tropical', spirit: 'Vodka', price: 49900, img: 'flavor-tropical',
-      desc: 'Vodka con mezcla de frutas tropicales: la perla más refrescante para cualquier clima.' },
-    { id: 'clasico-maracumango', category: 'clasico', name: 'Maracumango', spirit: 'Tequila', price: 49900, img: 'flavor-maracumango',
-      desc: 'Tequila con maracuyá y mango: el combo tropical que se roba las miradas.' },
-    { id: 'clasico-blueberry', category: 'clasico', name: 'Blueberry', spirit: 'Vodka', price: 49900, img: 'flavor-blueberry',
-      desc: 'Vodka con arándanos: dulce, morado y perfecto para compartir.' },
-    { id: 'clasico-sandia', category: 'clasico', name: 'Sandía', spirit: 'Whiskey', price: 49900, img: 'flavor-sandia',
-      desc: 'Whiskey con sandía: un choque de sabores que sorprende en cada perla.' },
+    { id: 'clasico-smirnoff', category: 'clasico', name: 'Smirnoff', spirit: 'Vodka', price: 49900, img: 'p-clasico-smirnoff',
+      desc: 'El clásico vodka Smirnoff, limpio y directo, en perlas listas para explotar.' },
+    { id: 'clasico-guaropink', category: 'clasico', name: 'Guaro Pink', spirit: 'Aguardiente', price: 49900, img: 'p-clasico-guaropink',
+      desc: 'Aguardiente con cereza: dulce, intenso y muy rosado.' },
+    { id: 'clasico-bombonbum', category: 'clasico', name: 'Bombonbum', spirit: 'Vodka', price: 49900, img: 'p-clasico-bombonbum',
+      desc: 'Vodka con sabor a bombón: la explosión más golosa.' },
+    { id: 'clasico-blueice', category: 'clasico', name: 'Blue Ice', spirit: 'Aguardiente', price: 49900, img: 'p-clasico-blueice',
+      desc: 'Aguardiente con menta: azul, fresco y helado.' },
+    { id: 'clasico-nebuloso', category: 'clasico', name: 'Nebuloso', spirit: 'Ron-Menta', price: 49900, img: 'p-clasico-nebuloso',
+      desc: 'Ron con menta: fresco y envolvente.' },
+    { id: 'clasico-tropical', category: 'clasico', name: 'Tropical', spirit: 'Vodka', price: 49900, img: 'p-clasico-tropical',
+      desc: 'Vodka con frutas tropicales: la perla más refrescante.' },
+    { id: 'clasico-maracumango', category: 'clasico', name: 'Maracumango', spirit: 'Tequila', price: 49900, img: 'p-clasico-maracumango',
+      desc: 'Tequila con maracuyá y mango.' },
+    { id: 'clasico-blueberry', category: 'clasico', name: 'Blueberry', spirit: 'Vodka', price: 49900, img: 'p-clasico-blueberry',
+      desc: 'Vodka con arándanos: dulce y perfecto para compartir.' },
+    { id: 'clasico-sandia', category: 'clasico', name: 'Sandía', spirit: 'Whiskey', price: 49900, img: 'p-clasico-sandia',
+      desc: 'Whiskey con sandía: un choque de sabores que sorprende.' },
 
-    { id: 'sinlicor-bombonbum', category: 'sinlicor', name: 'Bombonbum', spirit: 'Sin alcohol', price: 47900, accent: '#ff6f7d',
-      desc: 'Toda la explosión de sabor a bombón, sin una gota de alcohol.' },
-    { id: 'sinlicor-chicle', category: 'sinlicor', name: 'Chicle', spirit: 'Sin alcohol', price: 47900, accent: '#ff8fa8',
-      desc: 'Dulce y nostálgico: la perla que sabe a chicle de siempre.' },
-    { id: 'sinlicor-sandia', category: 'sinlicor', name: 'Sandía', spirit: 'Sin alcohol', price: 47900, accent: '#ff5f6d',
-      desc: 'Fresca y jugosa, ideal para toda la familia.' },
-    { id: 'sinlicor-tropical', category: 'sinlicor', name: 'Tropical', spirit: 'Sin alcohol', price: 47900, accent: '#ff7a4d',
-      desc: 'Mezcla de frutas tropicales, sin licor pero con toda la explosión.' },
-    { id: 'sinlicor-maracumango', category: 'sinlicor', name: 'Maracumango', spirit: 'Sin alcohol', price: 47900, accent: '#ff9a3d',
-      desc: 'Maracuyá y mango, en su version sin alcohol.' },
+    { id: 'sinlicor-bombonbum', category: 'sinlicor', name: 'Bombonbum', spirit: 'Sin alcohol', price: 47900, img: 'p-sinlicor-bombonbum',
+      desc: 'Todo el sabor a bombón, sin una gota de alcohol.' },
+    { id: 'sinlicor-chicle', category: 'sinlicor', name: 'Chicle', spirit: 'Sin alcohol', price: 47900, img: 'p-sinlicor-chicle',
+      desc: 'Dulce y nostálgico: sabe a chicle de siempre.' },
+    { id: 'sinlicor-sandia', category: 'sinlicor', name: 'Sandía', spirit: 'Sin alcohol', price: 47900, img: 'p-sinlicor-sandia',
+      desc: 'Fresca y jugosa, sin alcohol.' },
+    { id: 'sinlicor-tropical', category: 'sinlicor', name: 'Tropical', spirit: 'Sin alcohol', price: 47900, img: 'p-sinlicor-tropical',
+      desc: 'Frutas tropicales, sin licor y con toda la explosión.' },
+    { id: 'sinlicor-maracumango', category: 'sinlicor', name: 'Maracumango', spirit: 'Sin alcohol', price: 47900, img: 'p-sinlicor-maracumango',
+      desc: 'Maracuyá y mango, en versión sin alcohol.' },
+    { id: 'sinlicor-blueberry', category: 'sinlicor', name: 'Blueberry', spirit: 'Sin alcohol', price: 47900, img: 'p-sinlicor-blueberry',
+      desc: 'Arándanos dulces, sin alcohol.' },
   ];
 
   const CAT_LABEL = { premium: 'Nuevo Premium', clasico: 'Clásico', sinlicor: 'Sin licor' };
-  const CAT_COLOR = { premium: '#ffbe3d', clasico: '#2fd4ff', sinlicor: '#ff4d5e' };
   const CAT_NOTE = {
-    premium: 'Vodka Smirnoff con giro de tamarindo — recién llegado a la familia XPLOSHOT.',
-    clasico: 'Los 9 sabores originales que hicieron famoso a XPLOSHOT.',
-    sinlicor: 'Toda la explosión de sabor, apta para toda la familia.',
+    premium: 'Smirnoff con tamarindo: lo más nuevo de XPLOSHOT.',
+    clasico: 'Los 9 sabores clásicos de XPLOSHOT.',
+    sinlicor: 'Toda la explosión de sabor, sin alcohol.',
   };
 
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
@@ -162,8 +163,7 @@
   }
 
   function mediaThumb(p) {
-    if (p.img) return `<img src="assets/img/${p.img}.jpg" alt="" loading="lazy">`;
-    return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 30%,${p.accent}33,transparent 70%)"><img src="assets/img/logo-drop-sm.webp" alt="" width="34" height="34" style="width:60%"></div>`;
+    return `<img src="assets/img/${p.img}-sm.webp" alt="" loading="lazy" width="420" height="420">`;
   }
 
   function initCart() {
@@ -285,21 +285,17 @@
   /* ---------------------------------------------------------
      Catalog render + filters
   --------------------------------------------------------- */
+  // La foto ya trae el nombre del sabor arriba: la etiqueta NUEVO va abajo
+  // para no taparlo.
   function cardMedia(p) {
-    if (p.img) {
-      return `<div class="p-card__media js-open" data-id="${p.id}">
+    const sizes = '(min-width:1020px) 330px, (min-width:640px) 33vw, 50vw';
+    return `<div class="p-card__media js-open" data-id="${p.id}">
         ${p.badge ? `<span class="p-card__tag">${p.badge} 🔥</span>` : ''}
-        <span class="p-card__dot" style="background:${CAT_COLOR[p.category]}"></span>
         <picture>
-          <source srcset="assets/img/${p.img}.webp" type="image/webp">
-          <img src="assets/img/${p.img}.jpg" alt="Frasco XPLOSHOT sabor ${p.name}" loading="lazy" width="720" height="780">
+          <source type="image/webp" srcset="assets/img/${p.img}-sm.webp 420w, assets/img/${p.img}.webp 800w" sizes="${sizes}">
+          <img src="assets/img/${p.img}-sm.jpg" srcset="assets/img/${p.img}-sm.jpg 420w, assets/img/${p.img}.jpg 800w" sizes="${sizes}" alt="XPLOSHOT ${p.name}${p.category === 'sinlicor' ? ' sin licor' : ' — ' + p.spirit}" loading="lazy" width="800" height="800">
         </picture>
       </div>`;
-    }
-    return `<div class="p-card__media p-card__media--icon js-open" data-id="${p.id}" style="background:radial-gradient(circle at 38% 30%, ${p.accent}75, transparent 70%), linear-gradient(160deg, ${p.accent}45, rgba(255,255,255,.02))">
-      <span class="p-card__dot" style="background:${CAT_COLOR[p.category]}"></span>
-      <img src="assets/img/logo-drop.webp" alt="Perla XPLOSHOT sabor ${p.name}" loading="lazy" width="200" height="200">
-    </div>`;
   }
 
   function cardTemplate(p, { featured = false } = {}) {
@@ -367,10 +363,7 @@
   let modalState = { product: null, qty: 1 };
 
   function modalMediaHtml(p) {
-    if (p.img) {
-      return `<picture><source srcset="assets/img/${p.img}.webp" type="image/webp"><img src="assets/img/${p.img}.jpg" alt="Frasco XPLOSHOT sabor ${p.name}"></picture>`;
-    }
-    return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 30%,${p.accent}40,transparent 70%)"><img src="assets/img/logo-drop.webp" alt="" style="width:42%"></div>`;
+    return `<picture><source srcset="assets/img/${p.img}.webp" type="image/webp"><img src="assets/img/${p.img}.jpg" alt="XPLOSHOT ${p.name}" width="800" height="800"></picture>`;
   }
 
   function openProductModal(product, cart) {
@@ -385,7 +378,6 @@
     $('#qtyValue').textContent = '1';
 
     const media = $('#modalMedia');
-    media.className = 'modal__media' + (product.img ? '' : ' modal__media--icon');
     media.innerHTML = modalMediaHtml(product);
 
     updateModalWaLink();
