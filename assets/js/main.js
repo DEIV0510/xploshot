@@ -496,6 +496,205 @@
     update();
   }
 
+  const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------------------------------------------------------
+     Pantalla de carga: el logo se enciende dentro de un hexágono.
+     Dura lo justo para verse (mín. 1,4 s) y nunca más de 2,1 s.
+  --------------------------------------------------------- */
+  function initLoader() {
+    const root = document.documentElement;
+    const loader = $('#loader');
+    const done = () => { if (loader) loader.classList.add('is-hidden'); root.classList.add('is-ready'); };
+    if (!loader) { done(); return; }
+    const minMs = reduceMotion() ? 350 : 1400;
+    const since = () => performance.now();
+    const loaded = new Promise(r => (document.readyState === 'complete' ? r() : window.addEventListener('load', r, { once: true })));
+    const minT = new Promise(r => setTimeout(r, Math.max(0, minMs - since())));
+    const maxT = new Promise(r => setTimeout(r, Math.max(0, 2100 - since())));
+    Promise.race([Promise.all([loaded, minT]), maxT]).then(done);
+  }
+
+  /* ---------------------------------------------------------
+     Panal de hexágonos neón del fondo (como la barra LED de la
+     marca). El panal es un solo trazo estático; los hexágonos
+     encendidos son capas sueltas que solo animan su opacidad y
+     cambian de celda cuando están apagados.
+  --------------------------------------------------------- */
+  function initHexBg() {
+    const host = $('#hexbg');
+    if (!host) return;
+    const NS = 'http://www.w3.org/2000/svg';
+    const grid = document.createElementNS(NS, 'svg');
+    grid.setAttribute('class', 'hexbg__grid');
+    const path = document.createElementNS(NS, 'path');
+    grid.appendChild(path);
+    host.appendChild(grid);
+
+    let cells = [];
+    let geo = { r: 34, w: 0 };
+    const lit = [];
+    const taken = new Set();
+    const pickColor = () => { const n = Math.random(); return n < 0.55 ? '' : n < 0.85 ? 'is-blue' : 'is-violet'; };
+
+    // Una celda está libre si en su centro y sus esquinas solo hay contenedores
+    // (nada de texto, fotos ni tarjetas): así el brillo nunca queda detrás de algo que se lee.
+    const STRUCT = /^(HTML|BODY|MAIN|SECTION|DIV|HEADER|ASIDE|FOOTER|UL|OL|LI|FIGURE|NAV|DL)$/;
+    const BUSY = '.p-card, .step, .btn, .facts, .jump, .grid-help, .cart-bar, .wa-float, .header, .footer__legal';
+    // Los títulos grandes se leen bien con un trazo fino detrás; el texto chico, los
+    // botones y las fotos no.
+    const BIG = 'h1, h2, .cat-group__head h3';
+    function isFree(cx, cy) {
+      const { r, w } = geo;
+      const pts = [[cx, cy], [cx, cy - r * 0.6], [cx, cy + r * 0.6], [cx - w * 0.42, cy], [cx + w * 0.42, cy]];
+      return pts.every(([x, y]) => {
+        // la pantalla de carga tapa todo al inicio: se mira lo que hay debajo
+        const el = document.elementsFromPoint(x, y).find(n => !n.closest('#loader'));
+        if (!el || el === document.body || el === document.documentElement) return true;
+        if (el.closest(BUSY)) return false;
+        if (el.closest(BIG)) return true;
+        if (el.tagName === 'MAIN' || el.tagName === 'SECTION' || el.classList.contains('container')) return true;
+        return STRUCT.test(el.tagName) && !el.childNodes.length;
+      });
+    }
+
+    function place(item) {
+      if (item.cell != null) taken.delete(item.cell);
+      item.cell = null;
+      let i = -1;
+      for (let t = 0; t < 60; t++) {
+        const c = Math.floor(Math.random() * cells.length);
+        if (!taken.has(c) && isFree(cells[c][0], cells[c][1])) { i = c; break; }
+      }
+      // sin celda libre (pasa en celular, casi todo es contenido): esta vuelta no se enciende
+      item.el.classList.toggle('is-off', i < 0);
+      if (i < 0) return;
+      taken.add(i);
+      item.cell = i;
+      const [cx, cy] = cells[i];
+      item.el.style.transform = `translate(${(cx - geo.w / 2).toFixed(1)}px, ${(cy - geo.r).toFixed(1)}px)`;
+      item.el.classList.remove('is-blue', 'is-violet');
+      const c = pickColor();
+      if (c) item.el.classList.add(c);
+    }
+
+    function makeLit(isStatic) {
+      const el = document.createElement('div');
+      el.className = 'hexbg__lit' + (isStatic ? ' is-static' : '');
+      el.innerHTML = '<svg aria-hidden="true"></svg>';
+      host.appendChild(el);
+      const item = { el, cell: null };
+      if (!isStatic) {
+        el.style.setProperty('--d', `${(3.8 + Math.random() * 2.6).toFixed(2)}s`);
+        el.style.setProperty('--delay', `${(Math.random() * 5).toFixed(2)}s`);
+        el.addEventListener('animationiteration', () => place(item));
+      }
+      lit.push(item);
+      return item;
+    }
+
+    function build() {
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      const r = W < 640 ? 26 : 34;
+      const w = Math.sqrt(3) * r;
+      const rowH = 1.5 * r;
+      geo = { r, w };
+      const cols = Math.ceil(W / w) + 1;
+      const rows = Math.ceil(H / rowH) + 1;
+      let d = '';
+      cells = [];
+      const f = (n) => n.toFixed(1);
+      for (let row = 0; row <= rows; row++) {
+        for (let col = 0; col <= cols; col++) {
+          const cx = col * w + (row % 2 ? w / 2 : 0);
+          const cy = row * rowH;
+          // solo celdas completas dentro de la pantalla pueden encenderse
+          if (cx - w / 2 >= 0 && cx + w / 2 <= W && cy - r >= 0 && cy + r <= H) cells.push([cx, cy]);
+          d += `M${f(cx)} ${f(cy - r)}L${f(cx + w / 2)} ${f(cy - r / 2)}L${f(cx + w / 2)} ${f(cy + r / 2)}L${f(cx)} ${f(cy + r)}L${f(cx - w / 2)} ${f(cy + r / 2)}L${f(cx - w / 2)} ${f(cy - r / 2)}Z`;
+        }
+      }
+      path.setAttribute('d', d);
+      // forma del hexágono encendido (un poco más chico que la celda)
+      const s = 2;
+      const pts = [[w / 2, s], [w - s, r / 2 + s / 2], [w - s, 1.5 * r - s / 2], [w / 2, 2 * r - s], [s, 1.5 * r - s / 2], [s, r / 2 + s / 2]]
+        .map(p => p.map(n => n.toFixed(1)).join(',')).join(' ');
+      const wanted = reduceMotion() ? 6 : (W < 640 ? 7 : 14);
+      while (lit.length < wanted) makeLit(reduceMotion());
+      while (lit.length > wanted) { const it = lit.pop(); taken.delete(it.cell); it.el.remove(); }
+      taken.clear();
+      lit.forEach(item => {
+        item.cell = null;
+        item.el.style.width = `${w.toFixed(1)}px`;
+        item.el.style.height = `${(2 * r).toFixed(1)}px`;
+        const svg = item.el.firstChild;
+        svg.setAttribute('viewBox', `0 0 ${w.toFixed(1)} ${(2 * r).toFixed(1)}`);
+        svg.innerHTML = `<polygon points="${pts}"/>`;
+        place(item);
+      });
+    }
+
+    build();
+
+    // al bajar, el contenido pasa por debajo de los hexágonos (que están fijos):
+    // el que quede detrás de algo se apaga hasta su siguiente vuelta
+    let scrollTimer = null;
+    window.addEventListener('scroll', () => {
+      if (scrollTimer) return;
+      scrollTimer = setTimeout(() => {
+        scrollTimer = null;
+        lit.forEach(item => {
+          const isStatic = item.el.classList.contains('is-static');
+          if (!isStatic && (item.cell == null || item.el.classList.contains('is-off'))) return;
+          if (item.cell != null && isFree(cells[item.cell][0], cells[item.cell][1])) return;
+          // los quietos (movimiento reducido) se mudan a otra celda libre; los demás se apagan
+          if (isStatic) place(item); else item.el.classList.add('is-off');
+        });
+      }, 120);
+    }, { passive: true });
+
+    let resizeTimer;
+    let lastW = window.innerWidth;
+    let lastH = window.innerHeight;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        // en celular la barra del navegador cambia el alto al bajar: ignorar cambios chicos de alto
+        if (window.innerWidth === lastW && Math.abs(window.innerHeight - lastH) < 120) return;
+        lastW = window.innerWidth;
+        lastH = window.innerHeight;
+        build();
+      }, 250);
+    });
+  }
+
+  /* ---------------------------------------------------------
+     Aparición al bajar: solo para lo que empieza fuera de pantalla,
+     así nada visible al cargar (ni tras un salto de ancla) queda oculto.
+  --------------------------------------------------------- */
+  function initReveal() {
+    if (!('IntersectionObserver' in window) || reduceMotion()) return;
+    // los encabezados fijos de cada línea no se animan: son navegación
+    const targets = $$('.sabores__head, .p-card, .grid-help, .serve__head, .step, .ig__head, .ig__grid li, .footer__grid > *');
+    const fold = window.innerHeight * 0.92;
+    const items = targets.filter(el => el.getBoundingClientRect().top > fold);
+    items.forEach(el => el.classList.add('reveal'));
+    const io = new IntersectionObserver((entries) => {
+      let n = 0;
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target;
+        el.style.setProperty('--rd', `${Math.min(n++ * 60, 360)}ms`);
+        el.classList.add('is-in');
+        io.unobserve(el);
+        // al terminar se devuelven sus transiciones propias (brillo al pasar el mouse)
+        const clean = (ev) => { if (ev.propertyName !== 'opacity') return; el.classList.remove('reveal', 'is-in'); el.style.removeProperty('--rd'); el.removeEventListener('transitionend', clean); };
+        el.addEventListener('transitionend', clean);
+      });
+    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.06 });
+    items.forEach(el => io.observe(el));
+  }
+
   /* ---------------------------------------------------------
      Datos estructurados (desde el mismo catálogo)
   --------------------------------------------------------- */
@@ -544,6 +743,8 @@
     const year = $('#year');
     if (year) year.textContent = new Date().getFullYear();
 
+    initLoader();
+    initHexBg();
     initMenu();
     const cart = initCart();
     const modal = initModal(cart);
@@ -551,6 +752,7 @@
     initWaLinks();
     initWaFloat();
     initLineSpy();
+    initReveal();
     injectStructuredData();
   });
 })();

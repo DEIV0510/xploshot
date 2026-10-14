@@ -18,12 +18,16 @@ async function run() {
   // Se muestra a 40-56 px de alto: 240 px de ancho cubre pantallas 3x.
   const wordmark = await sharp(path.join(RAW, 'logo-wordmark.png')).trim({ threshold: 8 }).toBuffer();
   await sharp(wordmark).resize({ width: 240 }).webp({ quality: 90 }).toFile(path.join(OUT, 'logo-240.webp'));
+  // pantalla de carga: el logo se muestra a ~220px, 480 cubre pantallas 2x
+  await sharp(wordmark).resize({ width: 480 }).webp({ quality: 90 }).toFile(path.join(OUT, 'logo-480.webp'));
 
   // Favicon / app icon: la esfera que gotea (la O de SHOT) sobre el fondo de la marca.
   const dropBuf = await sharp(path.join(RAW, 'logo-wordmark.png'))
     .extract({ left: 1480, top: 1550, width: 800, height: 800 })
     .toBuffer();
   const dropTrim = await sharp(dropBuf).trim({ threshold: 8 }).toBuffer();
+  // la gota suelta: adorno flotante junto a la foto del hero
+  await sharp(dropTrim).resize({ width: 160 }).webp({ quality: 88 }).toFile(path.join(OUT, 'drop-160.webp'));
   const bg = { r: 5, g: 7, b: 14 };
   const drop = sharp(dropTrim).resize({ width: 640, withoutEnlargement: true });
   const dm = await drop.clone().metadata();

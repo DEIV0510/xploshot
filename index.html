@@ -23,11 +23,28 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script>document.documentElement.classList.add('js');setTimeout(function(){document.documentElement.classList.add('is-ready')},3000)</script>
+<link rel="preload" as="image" href="assets/img/logo-480.webp">
 <link rel="preload" as="image" href="assets/img/hero-shop-960.webp" imagesrcset="assets/img/hero-shop-960.webp 960w, assets/img/hero-shop.webp 1620w" imagesizes="(min-width:1280px) 620px, (min-width:1100px) 48vw, (min-width:900px) 52vw, (min-width:640px) 40vw, 100vw" fetchpriority="high">
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+
+<!-- Pantalla de carga: el logo se enciende dentro de un hexágono neón.
+     Se oculta sola por CSS a los 2,4 s aunque el JS no cargue. -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader__glow"></div>
+  <div class="loader__bubbles"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="loader__mark">
+    <svg class="loader__hex" viewBox="0 0 200 230" aria-hidden="true"><polygon points="100,6 194,60 194,170 100,224 6,170 6,60"/></svg>
+    <img class="loader__logo" src="assets/img/logo-480.webp" alt="" width="480" height="397">
+  </div>
+  <div class="loader__bar"><span></span></div>
+</div>
+
+<!-- Fondo: panal de hexágonos neón (lo dibuja el JS; se van encendiendo al azar) -->
+<div class="hexbg" id="hexbg" aria-hidden="true"></div>
 
 <a class="skip" href="#sabores">Saltar a los sabores</a>
 
@@ -89,9 +106,10 @@
 
 <!-- ============ HERO ============ -->
 <section class="hero" id="inicio">
+  <div class="hero__fx" aria-hidden="true"><span class="glow glow--a"></span><span class="glow glow--b"></span></div>
   <div class="container hero__grid">
     <div class="hero__copy">
-      <h1 class="hero__title">Shots moleculares</h1>
+      <h1 class="hero__title">Shots <span class="neon-text">moleculares</span></h1>
       <p class="hero__lead">Una explosión de sabor en cada perla.</p>
       <a href="#sabores" class="btn btn--primary btn--lg hero__cta">Ver sabores</a>
       <dl class="facts">
@@ -105,6 +123,8 @@
         <source type="image/webp" srcset="assets/img/hero-shop-960.webp 960w, assets/img/hero-shop.webp 1620w" sizes="(min-width:1280px) 620px, (min-width:1100px) 48vw, (min-width:900px) 52vw, (min-width:640px) 40vw, 100vw">
         <img src="assets/img/hero-shop.jpg" width="1200" height="800" fetchpriority="high" alt="Cuatro frascos XPLOSHOT, azul, naranja, verde y rojo, en una bandeja con hielo">
       </picture>
+      <img class="hero__drop hero__drop--1" src="assets/img/drop-160.webp" alt="" width="160" height="160" aria-hidden="true">
+      <img class="hero__drop hero__drop--2" src="assets/img/drop-160.webp" alt="" width="160" height="160" aria-hidden="true">
     </figure>
   </div>
 </section>
