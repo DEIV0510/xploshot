@@ -10,7 +10,7 @@
   ========================================================= */
   const PRODUCTS = [
     { id: 'nuevo-tamarindo', category: 'premium', isNew: true, name: 'Smirnoff Tamarindo', spirit: 'Vodka', price: 54900, img: 'p-premium-tamarindo',
-      desc: 'Vodka Smirnoff con tamarindo y un toque picante en cada perla.' },
+      desc: 'Smirnoff con tamarindo y un toque picante en cada perla.' },
 
     { id: 'clasico-smirnoff', category: 'clasico', name: 'Smirnoff', spirit: 'Vodka', price: 49900, img: 'p-clasico-smirnoff',
       desc: 'Vodka Smirnoff, limpio y directo, en perlas listas para explotar.' },
@@ -299,7 +299,7 @@
   /* ---------------------------------------------------------
      Catálogo por líneas
   --------------------------------------------------------- */
-  const SIZES = '(min-width:1280px) 405px, (min-width:640px) 31vw, 47vw';
+  const SIZES = '(min-width:1280px) 300px, (min-width:1100px) 26vw, (min-width:640px) 31vw, 47vw';
 
   function picture(p, { eager = false } = {}) {
     const alt = `XPLOSHOT ${p.name}${p.category === 'sinlicor' ? ' sin licor' : `, ${p.spirit}`}`;
@@ -328,20 +328,21 @@
       </article>`;
   }
 
+  // Producto único de la línea: 3 celdas (foto · texto · compra) sobre las
+  // mismas columnas del catálogo. El encabezado ya dice «Nuevo Premium».
   function wideTemplate(p) {
     return `
       <article class="p-card p-card--wide" data-id="${p.id}">
         <button type="button" class="p-card__media js-open" aria-label="Ver detalle de ${p.name}">${picture(p, { eager: true })}</button>
         <div class="p-card__body">
-          ${p.isNew ? '<span class="tag">Nuevo</span>' : ''}
           <h4 class="p-card__name"><button type="button" class="js-open">${p.name}</button></h4>
           <p class="p-card__meta">${p.spirit}</p>
           <p class="p-card__desc">${p.desc}</p>
-          <div class="p-card__buy">
-            <span class="p-card__price">${fmt(p.price)}</span>
-            ${addButton(p)}
-            <button type="button" class="link js-open p-card__more">Ver detalle</button>
-          </div>
+        </div>
+        <div class="p-card__buy">
+          <span class="p-card__price">${fmt(p.price)}</span>
+          ${addButton(p)}
+          <button type="button" class="link js-open p-card__more">Ver detalle</button>
         </div>
       </article>`;
   }
@@ -351,7 +352,7 @@
       <div class="grid-help">
         <p class="grid-help__k">¿No sabes cuál elegir?</p>
         <p>Te ayudamos por WhatsApp.</p>
-        <a class="btn btn--line btn--sm" href="${waLink(MSG_HELP)}" target="_blank" rel="noopener">Escribir</a>
+        <a class="btn btn--line btn--sm" href="${waLink(MSG_HELP)}" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp para elegir un sabor"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg><span>Escribir</span></a>
       </div>`;
   }
 
@@ -363,13 +364,20 @@
       grid.innerHTML = items.map(p => cat === 'premium' ? wideTemplate(p) : cardTemplate(p)).join('')
         + (cat !== 'premium' && items.length % 2 === 1 ? helpTile() : '');
       const min = Math.min(...items.map(p => p.price));
+      // con un solo producto la tarjeta ya muestra el precio: el encabezado queda limpio
       const head = $(`[data-head-count="${cat}"]`);
-      if (head) head.textContent = items.length === 1 ? '1 sabor' : `${items.length} sabores`;
+      if (head) head.textContent = items.length === 1 ? '' : `${items.length} sabores`;
       const price = $(`[data-head-price="${cat}"]`);
-      if (price) price.textContent = fmt(min) + (items.length > 1 ? ' c/u' : '');
+      if (price) price.textContent = items.length > 1 ? `${fmt(min)} c/u` : '';
       const jump = $(`[data-count="${cat}"]`);
       if (jump) jump.textContent = items.length;
+      const unit = $(`[data-unit="${cat}"]`);
+      if (unit) unit.textContent = items.length === 1 ? ' sabor' : ' sabores';
+      const jumpPrice = $(`[data-jump-price="${cat}"]`);
+      if (jumpPrice) jumpPrice.textContent = fmt(min);
     }
+    const sub = $('#saboresSub');
+    if (sub) sub.textContent = `${PRODUCTS.length} sabores en ${CATS.length} líneas`;
 
     $('#sabores').addEventListener('click', (e) => {
       const card = e.target.closest('.p-card');
@@ -461,6 +469,34 @@
   }
 
   /* ---------------------------------------------------------
+     Línea activa en la columna lateral de Sabores (escritorio).
+     Se mide en el scroll para que también acierte tras un salto de ancla.
+  --------------------------------------------------------- */
+  function initLineSpy() {
+    const links = $$('.jump a[data-line]');
+    const groups = links.map(a => $(a.getAttribute('href'))).filter(Boolean);
+    if (!groups.length) return;
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const line = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 64) + 120;
+      let current = -1;
+      groups.forEach((g, i) => { if (g.getBoundingClientRect().top <= line) current = i; });
+      const sabores = $('#sabores').getBoundingClientRect();
+      if (sabores.bottom < line) current = -1;
+      links.forEach((a, i) => {
+        const on = i === current;
+        a.classList.toggle('is-current', on);
+        if (on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+      });
+    };
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    update();
+  }
+
+  /* ---------------------------------------------------------
      Datos estructurados (desde el mismo catálogo)
   --------------------------------------------------------- */
   function injectStructuredData() {
@@ -514,6 +550,7 @@
     initCatalog(cart, modal);
     initWaLinks();
     initWaFloat();
+    initLineSpy();
     injectStructuredData();
   });
 })();
