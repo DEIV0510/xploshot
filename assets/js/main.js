@@ -581,23 +581,6 @@
   const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ---------------------------------------------------------
-     Pantalla de carga: el logo se enciende dentro de un hexágono.
-     Dura lo justo para verse (mín. 1,4 s) y nunca más de 2,1 s.
-  --------------------------------------------------------- */
-  function initLoader() {
-    const root = document.documentElement;
-    const loader = $('#loader');
-    const done = () => { if (loader) loader.classList.add('is-hidden'); root.classList.add('is-ready'); };
-    if (!loader) { done(); return; }
-    const minMs = reduceMotion() ? 350 : 1400;
-    const since = () => performance.now();
-    const loaded = new Promise(r => (document.readyState === 'complete' ? r() : window.addEventListener('load', r, { once: true })));
-    const minT = new Promise(r => setTimeout(r, Math.max(0, minMs - since())));
-    const maxT = new Promise(r => setTimeout(r, Math.max(0, 2100 - since())));
-    Promise.race([Promise.all([loaded, minT]), maxT]).then(done);
-  }
-
-  /* ---------------------------------------------------------
      Panal de hexágonos neón del fondo (como la barra LED de la
      marca). El panal es un solo trazo estático; los hexágonos
      encendidos son capas sueltas que solo animan su opacidad y
@@ -645,10 +628,32 @@
       item.cell = null;
       let i = -1;
       // ventana de 0 px (pestaña oculta): no hay celdas
-      for (let t = 0; t < 60 && cells.length; t++) {
+      for (let t = 0; t < 30 && cells.length; t++) {
         const c = Math.floor(Math.random() * cells.length);
         if (!taken.has(c) && isFree(cells[c][0], cells[c][1])) { i = c; break; }
       }
+      setCell(item, i);
+    }
+
+    // Para encenderlos todos a la vez: primero se buscan las celdas libres (solo
+    // lecturas, un único cálculo de diseño) y después se mueven. Intercalar lecturas y
+    // escrituras rehacía el diseño en cada consulta y trababa el celular casi 1 s.
+    function placeAll() {
+      taken.clear();
+      lit.forEach(item => { item.cell = null; });
+      const order = cells.map((_, n) => n);
+      for (let n = order.length - 1; n > 0; n--) {
+        const k = Math.floor(Math.random() * (n + 1));
+        [order[n], order[k]] = [order[k], order[n]];
+      }
+      const free = [];
+      for (let n = 0; n < order.length && n < 140 && free.length < lit.length; n++) {
+        if (isFree(cells[order[n]][0], cells[order[n]][1])) free.push(order[n]);
+      }
+      lit.forEach((item, n) => setCell(item, n < free.length ? free[n] : -1));
+    }
+
+    function setCell(item, i) {
       // sin celda libre (pasa en celular, casi todo es contenido): esta vuelta no se enciende
       item.el.classList.toggle('is-off', i < 0);
       if (i < 0) return;
@@ -670,7 +675,7 @@
       if (!isStatic) {
         el.style.setProperty('--d', `${(3.8 + Math.random() * 2.6).toFixed(2)}s`);
         el.style.setProperty('--delay', `${(Math.random() * 5).toFixed(2)}s`);
-        el.addEventListener('animationiteration', () => place(item));
+        el.addEventListener('animationiteration', () => { if (ready) place(item); });
       }
       lit.push(item);
       return item;
@@ -705,25 +710,30 @@
       const wanted = reduceMotion() ? 6 : (W < 640 ? 7 : 14);
       while (lit.length < wanted) makeLit(reduceMotion());
       while (lit.length > wanted) { const it = lit.pop(); taken.delete(it.cell); it.el.remove(); }
-      taken.clear();
       lit.forEach(item => {
-        item.cell = null;
         item.el.style.width = `${w.toFixed(1)}px`;
         item.el.style.height = `${(2 * r).toFixed(1)}px`;
         const svg = item.el.firstChild;
         svg.setAttribute('viewBox', `0 0 ${w.toFixed(1)} ${(2 * r).toFixed(1)}`);
         svg.innerHTML = `<polygon points="${pts}"/>`;
-        place(item);
       });
+      if (ready) placeAll();
+      else { taken.clear(); lit.forEach(item => { item.cell = null; setCell(item, -1); }); }
     }
 
+    // El panal se dibuja ya; los encendidos esperan a que se cierre la pantalla de
+    // carga (detrás de ella no se ven y buscarles celda le quitaba fluidez al logo).
+    let ready = false;
     build();
+    const start = () => { if (ready) return; ready = true; placeAll(); };
+    if (document.documentElement.classList.contains('is-ready')) start();
+    else document.addEventListener('xp:ready', () => setTimeout(start, 500), { once: true });
 
     // al bajar, el contenido pasa por debajo de los hexágonos (que están fijos):
     // el que quede detrás de algo se apaga hasta su siguiente vuelta
     let scrollTimer = null;
     window.addEventListener('scroll', () => {
-      if (scrollTimer) return;
+      if (!ready || scrollTimer) return;
       scrollTimer = setTimeout(() => {
         scrollTimer = null;
         lit.forEach(item => {
@@ -826,7 +836,7 @@
     const year = $('#year');
     if (year) year.textContent = new Date().getFullYear();
 
-    initLoader();
+    // la pantalla de carga la maneja el script en línea que va junto a ella en index.html
     initMenu();
     const cart = initCart();
     const modal = initModal(cart);

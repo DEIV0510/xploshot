@@ -23,25 +23,71 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<script>document.documentElement.classList.add('js');setTimeout(function(){document.documentElement.classList.add('is-ready')},3000)</script>
-<link rel="preload" as="image" href="assets/img/logo-480.webp">
-<link rel="preload" as="image" href="assets/img/hero-shop-960.webp" imagesrcset="assets/img/hero-shop-960.webp 960w, assets/img/hero-shop.webp 1620w" imagesizes="(min-width:1280px) 620px, (min-width:1100px) 48vw, (min-width:900px) 52vw, (min-width:640px) 40vw, 100vw" fetchpriority="high">
+<script>document.documentElement.classList.add('js')</script>
+<!-- el logo de la pantalla de carga va primero; la foto del hero queda detrás de ella -->
+<link rel="preload" as="image" href="assets/img/logo-360.webp" fetchpriority="high">
+<link rel="preload" as="image" href="assets/img/hero-shop-960.webp" imagesrcset="assets/img/hero-shop-960.webp 960w, assets/img/hero-shop.webp 1620w" imagesizes="(min-width:1280px) 620px, (min-width:1100px) 48vw, (min-width:900px) 52vw, (min-width:640px) 40vw, 100vw">
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
 <!-- Pantalla de carga: el logo se enciende dentro de un hexágono neón.
-     Se oculta sola por CSS a los 2,4 s aunque el JS no cargue. -->
+     Sin JS no se muestra. -->
 <div class="loader" id="loader" aria-hidden="true">
   <div class="loader__glow"></div>
   <div class="loader__bubbles"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
   <div class="loader__mark">
     <svg class="loader__hex" viewBox="0 0 200 230" aria-hidden="true"><polygon points="100,6 194,60 194,170 100,224 6,170 6,60"/></svg>
-    <img class="loader__logo" src="assets/img/logo-480.webp" alt="" width="480" height="397">
+    <img class="loader__logo" src="assets/img/logo-360.webp" alt="" width="360" height="298" fetchpriority="high">
   </div>
   <div class="loader__bar"><span></span></div>
 </div>
+<script>
+/* Va aquí y no en main.js para no esperar a que cargue: el logo se enciende
+   cuando su imagen ya llegó y se deja ver al menos 1,3 s antes de abrir la tienda. */
+(function () {
+  var root = document.documentElement;
+  var loader = document.getElementById('loader');
+  var logo = loader.querySelector('.loader__logo');
+  var calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hold = calm ? 500 : 1300;
+  var lit = false, painted = false, counting = false, closed = false;
+  function close() {
+    if (closed) return;
+    closed = true;
+    loader.classList.add('is-hidden');
+    root.classList.add('is-ready');
+    document.dispatchEvent(new Event('xp:ready'));
+  }
+  // dos cuadros después: lo pedido ya está en pantalla
+  function afterPaint(fn) {
+    requestAnimationFrame(function () { requestAnimationFrame(fn); });
+  }
+  // Los 1,3 s se cuentan con el logo ya pintado y la tienda ya armada (main.js corre
+  // antes de DOMContentLoaded): armarla congela el celular un momento y ese rato no
+  // puede comerse el tiempo en que se ve el logo.
+  function count() {
+    if (counting || !painted || document.readyState === 'loading') return;
+    counting = true;
+    afterPaint(function () { setTimeout(close, hold); });
+  }
+  function on() {
+    if (lit) return;
+    lit = true;
+    loader.classList.add('is-on');
+    afterPaint(function () {
+      painted = true;
+      count();
+      setTimeout(close, hold + 2500); // si main.js tarda demasiado en llegar
+    });
+  }
+  if (logo.complete && logo.naturalWidth) on();
+  else { logo.addEventListener('load', on); logo.addEventListener('error', close); }
+  document.addEventListener('DOMContentLoaded', count);
+  setTimeout(close, 6000); // tope: si el logo nunca llega
+})();
+</script>
 
 <!-- Fondo: panal de hexágonos neón (lo dibuja el JS; se van encendiendo al azar) -->
 <div class="hexbg" id="hexbg" aria-hidden="true"></div>
