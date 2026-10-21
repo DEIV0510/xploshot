@@ -318,19 +318,9 @@ body.no-scroll{ overflow:hidden; }
 .hero__grid{ position:relative; display:flex; flex-direction:column; }
 .hero__media{ position:relative; order:-1; margin:0 calc(-1 * var(--gutter)); background:var(--surface-2); }
 .hero__media picture{ display:block; }
-/* solo la foto: la regla genérica «.hero__media img» también agrandaba las gotas decorativas */
 .hero__media picture img{ width:100%; aspect-ratio:16/9; object-fit:cover; object-position:50% 50%; }
-.hero__drop{ position:absolute; z-index:2; height:auto; pointer-events:none; filter:drop-shadow(0 8px 18px rgba(20,102,255,.65)); animation:floaty 6s ease-in-out infinite; }
-.hero__drop--1{ width:60px; right:14px; bottom:-20px; animation-delay:-2s; }
-.hero__drop--2{ display:none; }
-@keyframes floaty{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-12px); } }
-@media (min-width:640px){
-  /* marco neón alrededor de la foto */
-  .hero__media{ box-shadow:var(--glow); outline:1px solid rgba(47,212,255,.35); outline-offset:-1px; }
-  .hero__drop--1{ width:70px; right:auto; left:-22px; top:-18px; bottom:auto; }
-  .hero__drop--2{ display:block; width:44px; right:-16px; bottom:22px; }
-}
-@media (min-width:900px){ .hero__drop--1{ width:84px; left:-30px; top:-30px; } }
+/* marco neón alrededor de la foto */
+@media (min-width:640px){ .hero__media{ box-shadow:var(--glow); outline:1px solid rgba(47,212,255,.35); outline-offset:-1px; } }
 .hero__copy{ padding-top:20px; }
 .hero__title{ font-weight:700; font-size:clamp(30px, 3.2vw + 14px, 56px); line-height:1.04; letter-spacing:-.025em; }
 .hero__lead{ margin-top:8px; font-size:16px; color:var(--ink-2); }
@@ -368,21 +358,22 @@ body.no-scroll{ overflow:hidden; }
 .sabores{ padding:28px 0 56px; }
 .sabores__sub{ display:none; }
 .sabores__aside-foot{ display:none; }
-.jump{ margin-top:12px; display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--line-strong); background:rgba(4,6,15,.88); }
+/* 4 líneas: 2×2 en celular, una fila desde 640. Los filetes salen del gap. */
+.jump{ margin-top:12px; display:grid; grid-template-columns:repeat(2,1fr); gap:1px; border:1px solid var(--line-strong); background:var(--line-strong); }
 .jump a{
   display:block; height:44px; line-height:44px; text-align:center;
-  font-size:14px; font-weight:600; border-left:1px solid var(--line-strong);
+  font-size:14px; font-weight:600; background:#05080F;
   white-space:nowrap;
   transition:background-color .12s, color .12s;
 }
-.jump a:first-child{ border-left:0; }
 .jump a:hover{ background:var(--surface-2); }
 .jump__pre, .jump__unit, .jump__price{ display:none; }
 .jump__n{ margin-left:6px; font-size:13px; font-weight:500; line-height:1; color:var(--ink-3); font-variant-numeric:tabular-nums; }
+@media (min-width:640px){ .jump{ grid-template-columns:repeat(4,1fr); } }
 @media (min-width:900px){
   .sabores{ padding:var(--section-y) 0; }
   .sabores__head{ display:flex; justify-content:space-between; align-items:center; gap:24px; }
-  .jump{ margin-top:0; width:420px; }
+  .jump{ margin-top:0; width:540px; }
 }
 
 .cat-group{ margin-top:28px; }
@@ -407,13 +398,13 @@ body.no-scroll{ overflow:hidden; }
 @media (min-width:1100px){
   .sabores__aside{ position:sticky; top:calc(var(--header-h) + 32px); }
   .sabores__head{ display:block; }
-  .jump{ margin-top:28px; width:auto; display:block; border:0; border-top:1px solid var(--line-strong); }
+  .jump{ margin-top:28px; width:auto; display:block; border:0; border-top:1px solid var(--line-strong); background:none; }
   .jump a{
     position:relative; height:auto; line-height:1.2; text-align:left; white-space:normal;
     padding:14px 12px 14px 14px;
     display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"label price" "n n";
     row-gap:4px; column-gap:12px;
-    border-left:0; border-bottom:1px solid var(--line);
+    background:transparent; border-bottom:1px solid var(--line);
     font-size:15px; color:var(--ink-2);
   }
   .jump a::before{ content:""; position:absolute; left:0; top:-1px; bottom:-1px; width:2px; background:transparent; }
@@ -470,19 +461,21 @@ body.no-scroll{ overflow:hidden; }
 
 /* la línea Premium lleva su acento dorado, como en el diseño anterior */
 #h-premium{ background:linear-gradient(135deg,#FFE3A1,#FFBE3D 55%,#FF9E2C); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 0 14px rgba(255,190,61,.35)); }
-.p-card--wide{ box-shadow:inset 0 2px 0 rgba(255,190,61,.85), 0 -6px 24px -14px rgba(255,190,61,.7); }
-@media (hover:hover){ .p-card--wide:hover{ box-shadow:inset 0 2px 0 rgba(255,190,61,.9), var(--glow-strong); } }
+[data-grid="premium"] .p-card--wide{ box-shadow:inset 0 2px 0 rgba(255,190,61,.85), 0 -6px 24px -14px rgba(255,190,61,.7); }
+@media (hover:hover){ [data-grid="premium"] .p-card--wide:hover{ box-shadow:inset 0 2px 0 rgba(255,190,61,.9), var(--glow-strong); } }
 @media (min-width:640px){ .p-card__body{ padding:16px; } }
 @media (min-width:760px){
   .p-card__buy{ flex-direction:row; justify-content:space-between; align-items:center; gap:8px; }
   .p-card .btn{ width:auto; padding-inline:12px; }
 }
 
-/* Nuevo Premium: una fila con 3 celdas (foto · texto · compra) sobre las
-   mismas columnas del catálogo. En celular: foto + texto y la compra debajo. */
-.p-card--wide{ grid-column:1 / -1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-areas:"media body" "buy buy"; }
-.p-card--wide .p-card__media{ grid-area:media; align-self:start; border-bottom:0; border-right:1px solid var(--line); }
+/* Tarjeta ancha (Nuevo Premium y accesorios): una fila con 3 celdas
+   (foto · texto · compra) sobre las mismas columnas del catálogo. En celular:
+   foto + texto, debajo el color (si tiene) y la compra. */
+.p-card--wide{ grid-column:1 / -1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-areas:"media body" "colors colors" "buy buy"; }
+.p-card--wide .p-card__media{ grid-area:media; align-self:center; border-bottom:0; border-right:1px solid var(--line); }
 .p-card--wide .p-card__body{ grid-area:body; justify-content:center; padding:12px; gap:4px; }
+.p-card--wide .p-card__colors{ grid-area:colors; padding:12px; border-top:1px solid var(--line); }
 .p-card--wide .p-card__name{ font:600 18px/1.15 var(--font-display); letter-spacing:-.01em; }
 @media (max-width:379.98px){ .p-card--wide .p-card__name{ font-size:16px; } }
 .p-card--wide .p-card__desc{ display:none; }
@@ -491,8 +484,15 @@ body.no-scroll{ overflow:hidden; }
 .p-card--wide > .p-card__buy .btn{ flex:1 1 auto; width:auto; }
 .p-card--wide .p-card__more{ display:none; }
 @media (min-width:640px){
-  .p-card--wide{ grid-template-columns:repeat(3,minmax(0,1fr)); grid-template-areas:"media body buy"; }
+  /* texto y color van centrados juntos en la columna del medio */
+  .p-card--wide{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    grid-template-areas:"media . buy" "media body buy" "media colors buy" "media . buy";
+    grid-template-rows:1fr auto auto 1fr;
+  }
   .p-card--wide .p-card__body{ padding:24px; }
+  .p-card--wide .p-card__colors{ padding:0 24px 24px; border-top:0; }
+  .p-card--wide:has(.p-card__colors) .p-card__body{ padding-bottom:16px; }
   .p-card--wide .p-card__name{ font-size:20px; }
   .p-card--wide > .p-card__buy{ flex-direction:column; align-items:stretch; justify-content:center; gap:12px; padding:24px; border-top:0; border-left:1px solid var(--line); }
   .p-card--wide > .p-card__buy .btn{ flex:none; width:100%; padding-inline:16px; }
@@ -503,6 +503,25 @@ body.no-scroll{ overflow:hidden; }
   .p-card--wide .p-card__desc{ display:block; margin-top:6px; font-size:14px; line-height:1.5; color:var(--ink-2); }
 }
 @media (min-width:1100px){ .p-card--wide .p-card__name{ font-size:24px; } }
+
+/* ---------- selector de color (accesorios) ---------- */
+.colors{ border:0; margin:0; padding:0; min-width:0; }
+/* float saca la leyenda del borde del fieldset: queda como un título normal */
+.colors legend{ float:left; width:100%; padding:0; margin-bottom:8px; }
+.colors__list{ clear:both; display:flex; flex-wrap:wrap; gap:6px; }
+.chip-color{
+  position:relative; display:inline-flex; align-items:center; gap:7px;
+  min-height:40px; padding:0 11px;
+  border:1px solid var(--line-strong); background:rgba(47,212,255,.03);
+  font:600 13px/1 var(--font-body); color:var(--ink-2); cursor:pointer;
+  transition:border-color .15s, color .15s, background-color .15s, box-shadow .2s;
+}
+.chip-color input{ position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+.chip-color:hover{ color:var(--ink); border-color:rgba(47,212,255,.5); }
+.chip-color:has(input:checked){ color:var(--ink); border-color:var(--accent); background:rgba(47,212,255,.09); box-shadow:0 0 14px -4px rgba(47,212,255,.7); }
+.chip-color:has(input:focus-visible){ outline:2px solid var(--accent); outline-offset:2px; }
+.chip-color__dot{ width:12px; height:12px; flex:0 0 auto; border-radius:50%; border:1px solid rgba(255,255,255,.4); }
+@media (min-width:900px){ .chip-color{ min-height:36px; } }
 
 /* casilla de ayuda: rellena la celda vacía cuando una línea tiene número impar (solo 2 columnas) */
 .grid-help{ background:linear-gradient(180deg, rgba(16,22,42,.92), rgba(6,9,20,.96)); padding:16px 12px; display:flex; flex-direction:column; justify-content:flex-end; gap:8px; }
@@ -720,6 +739,7 @@ body.show-wa .wa-float{ display:flex; }
 @media (max-width:759.98px){
   /* en la hoja móvil la compra va justo después del precio, sin tener que bajar */
   .modal__media img{ max-height:38dvh; }
+  .modal__body > .colors{ order:1; }
   .modal__actions{ order:1; margin-top:4px; }
   .modal__wa{ order:2; margin-top:-4px; }
   .modal__desc{ order:3; }
@@ -754,7 +774,7 @@ body.show-wa .wa-float{ display:flex; }
   html{ scroll-behavior:auto; }
   *,*::before,*::after{ transition-duration:.001ms !important; animation-duration:.001ms !important; }
   /* lo que se repite sin fin queda quieto (a .001ms parpadearía) */
-  .hexbg__lit, .glow, .hero__drop, .wa-float::before, .loader__glow, .loader__bubbles span, .loader__bar span{ animation:none !important; }
+  .hexbg__lit, .glow, .wa-float::before, .loader__glow, .loader__bubbles span, .loader__bar span{ animation:none !important; }
   .hexbg__lit.is-static{ opacity:.7; }
   .loader__bubbles{ display:none; }
 }

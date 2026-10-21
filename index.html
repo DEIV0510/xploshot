@@ -95,6 +95,7 @@
     <a href="#linea-premium">Nuevo Premium</a>
     <a href="#linea-clasicos">Clásicos</a>
     <a href="#linea-sinlicor">Sin licor</a>
+    <a href="#linea-accesorios">Accesorios</a>
     <a href="#como-se-sirve">Cómo se sirve</a>
     <a href="#contacto">Contacto</a>
   </nav>
@@ -123,8 +124,6 @@
         <source type="image/webp" srcset="assets/img/hero-shop-960.webp 960w, assets/img/hero-shop.webp 1620w" sizes="(min-width:1280px) 620px, (min-width:1100px) 48vw, (min-width:900px) 52vw, (min-width:640px) 40vw, 100vw">
         <img src="assets/img/hero-shop.jpg" width="1200" height="800" fetchpriority="high" alt="Cuatro frascos XPLOSHOT, azul, naranja, verde y rojo, en una bandeja con hielo">
       </picture>
-      <img class="hero__drop hero__drop--1" src="assets/img/drop-160.webp" alt="" width="160" height="160" aria-hidden="true">
-      <img class="hero__drop hero__drop--2" src="assets/img/drop-160.webp" alt="" width="160" height="160" aria-hidden="true">
     </figure>
   </div>
 </section>
@@ -140,6 +139,7 @@
           <a href="#linea-premium" data-line="premium"><span class="jump__label"><span class="jump__pre">Nuevo </span>Premium</span><span class="jump__n"><span data-count="premium">1</span><span class="jump__unit" data-unit="premium"> sabor</span></span><span class="jump__price" data-jump-price="premium"></span></a>
           <a href="#linea-clasicos" data-line="clasico"><span class="jump__label">Clásicos</span><span class="jump__n"><span data-count="clasico">9</span><span class="jump__unit" data-unit="clasico"> sabores</span></span><span class="jump__price" data-jump-price="clasico"></span></a>
           <a href="#linea-sinlicor" data-line="sinlicor"><span class="jump__label">Sin licor</span><span class="jump__n"><span data-count="sinlicor">6</span><span class="jump__unit" data-unit="sinlicor"> sabores</span></span><span class="jump__price" data-jump-price="sinlicor"></span></a>
+          <a href="#linea-accesorios" data-line="accesorio"><span class="jump__label">Accesorios</span><span class="jump__n"><span data-count="accesorio">2</span><span class="jump__unit" data-unit="accesorio"> productos</span></span><span class="jump__price" data-jump-price="accesorio"></span></a>
         </nav>
       </div>
       <div class="sabores__aside-foot">
@@ -171,6 +171,14 @@
         <p class="cat-group__price" data-head-price="sinlicor"></p>
       </header>
       <div class="product-grid" data-grid="sinlicor"></div>
+    </section>
+
+    <section class="cat-group" id="linea-accesorios" aria-labelledby="h-accesorios">
+      <header class="cat-group__head">
+        <h3 id="h-accesorios">Accesorios <span class="cat-group__count" data-head-count="accesorio"></span></h3>
+        <p class="cat-group__price" data-head-price="accesorio"></p>
+      </header>
+      <div class="product-grid" data-grid="accesorio"></div>
     </section>
 
     <div class="sabores__foot">
@@ -324,11 +332,11 @@
       <h2 id="modalName" class="modal__name"></h2>
       <p class="modal__price" id="modalPrice"></p>
       <p class="modal__desc" id="modalDesc"></p>
-      <dl class="spec">
-        <div><dt>Licor</dt><dd id="specSpirit"></dd></div>
-        <div><dt>Contenido</dt><dd>25 perlas</dd></div>
-        <div><dt>Línea</dt><dd id="specLine"></dd></div>
-      </dl>
+      <dl class="spec" id="modalSpec"></dl>
+      <fieldset class="colors" id="modalColors" hidden>
+        <legend class="label">Color</legend>
+        <div class="colors__list"></div>
+      </fieldset>
       <div class="modal__actions">
         <div class="qty" role="group" aria-label="Cantidad">
           <button id="qtyMinus" type="button" aria-label="Restar uno"><svg width="16" height="16" aria-hidden="true"><use href="#i-minus"/></svg></button>

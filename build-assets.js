@@ -26,8 +26,6 @@ async function run() {
     .extract({ left: 1480, top: 1550, width: 800, height: 800 })
     .toBuffer();
   const dropTrim = await sharp(dropBuf).trim({ threshold: 8 }).toBuffer();
-  // la gota suelta: adorno flotante junto a la foto del hero
-  await sharp(dropTrim).resize({ width: 160 }).webp({ quality: 88 }).toFile(path.join(OUT, 'drop-160.webp'));
   const bg = { r: 5, g: 7, b: 14 };
   const drop = sharp(dropTrim).resize({ width: 640, withoutEnlargement: true });
   const dm = await drop.clone().metadata();
@@ -66,6 +64,7 @@ async function run() {
     'clasico-smirnoff', 'clasico-guaropink', 'clasico-bombonbum', 'clasico-blueice', 'clasico-nebuloso',
     'clasico-tropical', 'clasico-maracumango', 'clasico-blueberry', 'clasico-sandia',
     'sinlicor-bombonbum', 'sinlicor-chicle', 'sinlicor-sandia', 'sinlicor-tropical', 'sinlicor-maracumango', 'sinlicor-blueberry',
+    'accesorio-cuchara', 'accesorio-soportes',
   ];
   for (const slug of PRODUCTS) {
     const src = path.join(V2, `${slug}.png`);

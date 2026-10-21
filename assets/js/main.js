@@ -43,29 +43,64 @@
       desc: 'Maracuyá y mango, sin alcohol.' },
     { id: 'sinlicor-blueberry', category: 'sinlicor', name: 'Blueberry', spirit: 'Sin alcohol', price: 47900, img: 'p-sinlicor-blueberry',
       desc: 'Arándanos, sin alcohol.' },
+
+    // Accesorios: precios confirmados por el cliente (2026-10-21)
+    { id: 'accesorio-cuchara', category: 'accesorio', name: 'Cuchara perforada', meta: '6 colores', price: 1900, img: 'p-accesorio-cuchara',
+      colors: ['Azul', 'Dorado', 'Negro', 'Tornasol', 'Oro rosa', 'Bronce'],
+      desc: 'Para servir esferas moleculares con precisión: el perforado escurre el exceso de líquido.' },
+    { id: 'accesorio-soportes', category: 'accesorio', name: 'Soportes Xploshot', meta: 'Transparente o azul', price: 65000, img: 'p-accesorio-soportes',
+      colors: ['Transparente', 'Azul'],
+      desc: 'Cucharitas especiales para servir y disfrutar tus shots moleculares en eventos y fiestas.' },
   ];
 
-  const CATS = ['premium', 'clasico', 'sinlicor'];
-  const CAT_LABEL = { premium: 'Nuevo Premium', clasico: 'Clásicos', sinlicor: 'Sin licor' };
-  const CAT_ONE = { premium: 'Nuevo Premium', clasico: 'Clásico', sinlicor: 'Sin licor' };
+  const CATS = ['premium', 'clasico', 'sinlicor', 'accesorio'];
+  const SHOT_CATS = ['premium', 'clasico', 'sinlicor'];
+  const CAT_LABEL = { premium: 'Nuevo Premium', clasico: 'Clásicos', sinlicor: 'Sin licor', accesorio: 'Accesorios' };
+  const CAT_ONE = { premium: 'Nuevo Premium', clasico: 'Clásico', sinlicor: 'Sin licor', accesorio: 'Accesorio' };
+  // muestra de color en los selectores (el nombre siempre va escrito al lado)
+  const SWATCH = {
+    Azul: '#2F6BFF', Dorado: '#D4A537', Negro: '#15171C', 'Oro rosa': '#E7A99B', Bronce: '#A8693A',
+    Tornasol: 'conic-gradient(#3D8BFF, #9B6BFF, #FF6FB5, #FFBE3D, #2FD4FF, #3D8BFF)',
+    Transparente: 'rgba(255,255,255,.18)',
+  };
 
   const MSG_INFO = 'Hola XPLOSHOT, quiero información sobre sus shots moleculares.';
   const MSG_HELP = 'Hola XPLOSHOT, ¿me ayudan a elegir un sabor?';
+  // formulario de envío que usa el cliente en su WhatsApp, tal cual
+  const SHIPPING_FORM = '🚚📦Datos para tu envío\n\n🔹Dirección:\n🔹Barrio:\n🔹Nombre:\n🔹Cel:\n🔹Transferencia o Efectivo:';
 
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
   const fmt = (n) => '$' + n.toLocaleString('es-CO');
   const byId = (id) => PRODUCTS.find(p => p.id === id);
-  const jars = (n) => `${n} ${n === 1 ? 'frasco' : 'frascos'}`;
+  const metaOf = (p) => p.meta || p.spirit;
+  const isShot = (p) => SHOT_CATS.includes(p.category);
   const waLink = (msg) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
   const isDesktop = () => window.matchMedia('(min-width:900px)').matches;
+  // «3 frascos» si son solo shots; «3 productos» si hay accesorios
+  const units = (lines) => {
+    const n = lines.reduce((s, l) => s + l.qty, 0);
+    const word = lines.every(l => isShot(l.p)) ? (n === 1 ? 'frasco' : 'frascos') : (n === 1 ? 'producto' : 'productos');
+    return `${n} ${word}`;
+  };
+  const lineName = (p, color) => `${p.name} (${CAT_ONE[p.category]}${color ? `, ${color}` : ''})`;
 
   function orderMessage(lines) {
-    const items = lines.map(({ p, qty }) => `• ${qty} × ${p.name} (${CAT_ONE[p.category]}) — ${fmt(p.price * qty)}`).join('\n');
+    const items = lines.map(({ p, qty, color }) => `• ${qty} × ${lineName(p, color)} — ${fmt(p.price * qty)}`).join('\n');
     const count = lines.reduce((n, l) => n + l.qty, 0);
     const total = lines.reduce((n, l) => n + l.p.price * l.qty, 0);
-    const totalLine = lines.length > 1 || count > 1 ? `\n\nTotal: ${jars(count)} — ${fmt(total)}` : '';
-    return `Hola XPLOSHOT, quiero hacer este pedido:\n\n${items}${totalLine}\n\nNombre:\nCiudad y dirección:\n\n¿Me confirman disponibilidad y forma de pago?`;
+    const totalLine = lines.length > 1 || count > 1 ? `\n\nTotal: ${units(lines)} — ${fmt(total)}` : '';
+    return `Hola XPLOSHOT, quiero hacer este pedido:\n\n${items}${totalLine}\n\n${SHIPPING_FORM}`;
+  }
+
+  // selector de color con radios reales (teclado nativo); name único por lugar
+  function colorPicker(p, name, selected) {
+    const sel = selected && p.colors.includes(selected) ? selected : p.colors[0];
+    return p.colors.map(c => `
+      <label class="chip-color">
+        <input type="radio" name="${name}" value="${c}"${c === sel ? ' checked' : ''}>
+        <span class="chip-color__dot" style="background:${SWATCH[c] || 'transparent'}"></span><span>${c}</span>
+      </label>`).join('');
   }
 
   let announceTimer;
@@ -147,18 +182,29 @@
   /* ---------------------------------------------------------
      Carrito (localStorage, cantidades saneadas)
   --------------------------------------------------------- */
+  // cada producto+color es una línea del carrito
+  const keyOf = (id, color) => `${id}|${color || ''}`;
+  function cleanColor(p, color) {
+    if (!p.colors) return '';
+    return p.colors.includes(color) ? color : p.colors[0];
+  }
+
   function loadCart() {
     try {
       const parsed = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
       if (!Array.isArray(parsed)) return [];
       const merged = new Map();
       for (const item of parsed) {
-        if (!item || !byId(item.id)) continue;
+        const p = item && byId(item.id);
+        if (!p) continue;
         const q = Math.floor(Number(item.qty));
         if (!(q >= 1)) continue;
-        merged.set(item.id, Math.min(MAX_QTY, (merged.get(item.id) || 0) + q));
+        const color = cleanColor(p, item.color);
+        const key = keyOf(p.id, color);
+        const prev = merged.get(key);
+        merged.set(key, { id: p.id, color, qty: Math.min(MAX_QTY, (prev ? prev.qty : 0) + q) });
       }
-      return [...merged].map(([id, qty]) => ({ id, qty }));
+      return [...merged.values()];
     } catch { return []; }
   }
   function saveCart(cart) {
@@ -174,7 +220,9 @@
     const layer = { el: drawer, toggle, scrim: $('#cartScrim'), focus: () => $('#cartClose') };
     const list = $('#cartList');
 
-    const lines = () => cart.map(i => ({ p: byId(i.id), qty: i.qty })).filter(l => l.p);
+    const lines = () => cart.map(i => ({ p: byId(i.id), qty: i.qty, color: i.color || '', key: keyOf(i.id, i.color) })).filter(l => l.p);
+    const findKey = (key) => cart.find(i => keyOf(i.id, i.color) === key);
+    const rowOf = (key) => [...list.children].find(li => li.dataset.key === key);
 
     function render() {
       const ls = lines();
@@ -184,37 +232,43 @@
       const badge = $('#cartCount');
       badge.hidden = count === 0;
       badge.textContent = count;
-      toggle.setAttribute('aria-label', count ? `Abrir carrito (${jars(count)})` : 'Abrir carrito');
+      toggle.setAttribute('aria-label', count ? `Abrir carrito (${units(ls)})` : 'Abrir carrito');
       $('#cartQty').textContent = count ? `(${count})` : '';
 
       $('#cartEmpty').hidden = count > 0;
       $('#cartFoot').hidden = count === 0;
       $('#cartTotal').textContent = fmt(total);
 
-      list.innerHTML = ls.map(({ p, qty }) => `
-        <li class="cart-item" data-id="${p.id}">
+      list.innerHTML = ls.map(({ p, qty, color, key }) => {
+        const label = color ? `${p.name} ${color}` : p.name;
+        const meta = p.category === 'sinlicor' ? 'Sin licor'
+          : p.category === 'accesorio' ? `Accesorio · ${color}`
+          : `${CAT_ONE[p.category]} · ${p.spirit}`;
+        return `
+        <li class="cart-item" data-key="${key}">
           <div class="cart-item__media"><img src="assets/img/${p.img}-sm.webp" alt="" width="64" height="64" loading="lazy"></div>
           <div>
             <p class="cart-item__name">${p.name}</p>
-            <p class="cart-item__meta">${p.category === 'sinlicor' ? 'Sin licor' : `${CAT_ONE[p.category]} · ${p.spirit}`}</p>
+            <p class="cart-item__meta">${meta}</p>
             <div class="cart-item__row">
-              <div class="stepper" role="group" aria-label="Cantidad de ${p.name}">
-                <button type="button" data-act="minus" aria-label="Restar uno de ${p.name}" ${qty <= 1 ? 'disabled' : ''}><svg width="14" height="14" aria-hidden="true"><use href="#i-minus"/></svg></button>
+              <div class="stepper" role="group" aria-label="Cantidad de ${label}">
+                <button type="button" data-act="minus" aria-label="Restar uno de ${label}" ${qty <= 1 ? 'disabled' : ''}><svg width="14" height="14" aria-hidden="true"><use href="#i-minus"/></svg></button>
                 <span>${qty}</span>
-                <button type="button" data-act="plus" aria-label="Sumar uno a ${p.name}" ${qty >= MAX_QTY ? 'disabled' : ''}><svg width="14" height="14" aria-hidden="true"><use href="#i-plus"/></svg></button>
+                <button type="button" data-act="plus" aria-label="Sumar uno a ${label}" ${qty >= MAX_QTY ? 'disabled' : ''}><svg width="14" height="14" aria-hidden="true"><use href="#i-plus"/></svg></button>
               </div>
               <span class="cart-item__price">${fmt(p.price * qty)}</span>
-              <button type="button" class="link cart-item__remove" data-act="remove" aria-label="Quitar ${p.name} del carrito">Quitar</button>
+              <button type="button" class="link cart-item__remove" data-act="remove" aria-label="Quitar ${label} del carrito">Quitar</button>
             </div>
           </div>
-        </li>`).join('');
+        </li>`;
+      }).join('');
 
       const href = count ? waLink(orderMessage(ls)) : waLink(MSG_INFO);
       $('#cartCheckout').href = href;
 
       const bar = $('#cartBar');
       bar.hidden = count === 0;
-      $('#cartBarCount').textContent = jars(count);
+      $('#cartBarCount').textContent = units(ls);
       $('#cartBarTotal').textContent = fmt(total);
       $('#cartBarGo').href = href;
       document.body.classList.toggle('has-cart', count > 0);
@@ -222,26 +276,27 @@
 
     function persist() { saveCart(cart); render(); }
 
-    function addItem(product, qty = 1, { btn } = {}) {
-      const item = cart.find(i => i.id === product.id);
+    function addItem(product, qty = 1, { btn, color } = {}) {
+      const c = cleanColor(product, color);
+      const item = findKey(keyOf(product.id, c));
       if (item) item.qty = Math.min(MAX_QTY, item.qty + qty);
-      else cart.push({ id: product.id, qty: Math.min(MAX_QTY, qty) });
+      else cart.push({ id: product.id, color: c, qty: Math.min(MAX_QTY, qty) });
       persist();
-      announce(`${product.name} (${CAT_ONE[product.category]}) agregado al carrito`);
+      announce(`${lineName(product, c)} agregado al carrito`);
       if (btn) flashAdded(btn);
       if (!firstAddDone && isDesktop()) openLayer(layer, toggle);
       firstAddDone = true;
     }
 
-    function changeQty(id, delta) {
-      const item = cart.find(i => i.id === id);
+    function changeQty(key, delta) {
+      const item = findKey(key);
       if (!item) return;
       item.qty = Math.max(1, Math.min(MAX_QTY, item.qty + delta));
       persist();
     }
 
-    function removeItem(id) {
-      cart = cart.filter(i => i.id !== id);
+    function removeItem(key) {
+      cart = cart.filter(i => keyOf(i.id, i.color) !== key);
       persist();
     }
 
@@ -249,24 +304,26 @@
       const btn = e.target.closest('button[data-act]');
       const li = e.target.closest('.cart-item');
       if (!btn || !li) return;
-      const id = li.dataset.id;
+      const key = li.dataset.key;
       const act = btn.dataset.act;
       const index = [...list.children].indexOf(li);
-      if (act === 'plus') changeQty(id, 1);
-      if (act === 'minus') changeQty(id, -1);
+      if (act === 'plus') changeQty(key, 1);
+      if (act === 'minus') changeQty(key, -1);
       if (act === 'remove') {
-        const p = byId(id);
-        removeItem(id);
-        announce(`${p.name} quitado del carrito`);
+        const item = findKey(key);
+        const p = item && byId(item.id);
+        removeItem(key);
+        if (p) announce(`${lineName(p, item.color)} quitado del carrito`);
       }
       // devuelve el foco al mismo control tras redibujar la lista
-      const again = $(`.cart-item[data-id="${id}"] button[data-act="${act}"]`, list);
+      const row = rowOf(key);
+      const again = row && $(`button[data-act="${act}"]`, row);
       if (again && !again.disabled) again.focus();
       else if (act === 'remove') {
         const next = list.children[Math.min(index, list.children.length - 1)];
         (next ? $('button[data-act="remove"]', next) : $('#cartClose')).focus();
       } else {
-        const other = $(`.cart-item[data-id="${id}"] button[data-act="${act === 'plus' ? 'minus' : 'plus'}"]`, list);
+        const other = row && $(`button[data-act="${act === 'plus' ? 'minus' : 'plus'}"]`, row);
         if (other) other.focus();
       }
     });
@@ -302,7 +359,8 @@
   const SIZES = '(min-width:1280px) 300px, (min-width:1100px) 26vw, (min-width:640px) 31vw, 47vw';
 
   function picture(p, { eager = false } = {}) {
-    const alt = `XPLOSHOT ${p.name}${p.category === 'sinlicor' ? ' sin licor' : `, ${p.spirit}`}`;
+    const alt = p.category === 'accesorio' ? `${p.name}, accesorio XPLOSHOT`
+      : `XPLOSHOT ${p.name}${p.category === 'sinlicor' ? ' sin licor' : `, ${p.spirit}`}`;
     return `<picture>
       <source type="image/webp" srcset="assets/img/${p.img}-sm.webp 420w, assets/img/${p.img}.webp 800w" sizes="${SIZES}">
       <img src="assets/img/${p.img}-sm.jpg" srcset="assets/img/${p.img}-sm.jpg 420w, assets/img/${p.img}.jpg 800w" sizes="${SIZES}" width="800" height="800" loading="${eager ? 'eager' : 'lazy'}" alt="${alt}">
@@ -319,7 +377,7 @@
         <button type="button" class="p-card__media js-open" aria-label="Ver detalle de ${p.name} (${CAT_ONE[p.category]})">${picture(p)}</button>
         <div class="p-card__body">
           <h4 class="p-card__name"><button type="button" class="js-open">${p.name}</button></h4>
-          <p class="p-card__meta">${p.spirit}</p>
+          <p class="p-card__meta">${metaOf(p)}</p>
           <div class="p-card__buy">
             <span class="p-card__price">${fmt(p.price)}</span>
             ${addButton(p)}
@@ -328,17 +386,22 @@
       </article>`;
   }
 
-  // Producto único de la línea: 3 celdas (foto · texto · compra) sobre las
-  // mismas columnas del catálogo. El encabezado ya dice «Nuevo Premium».
-  function wideTemplate(p) {
+  // Tarjeta ancha: 3 celdas (foto · texto · compra) sobre las mismas columnas
+  // del catálogo. La usan el Nuevo Premium y los accesorios (con su color).
+  function wideTemplate(p, { eager = false } = {}) {
+    const colors = p.colors ? `
+        <fieldset class="colors p-card__colors">
+          <legend class="label">Color</legend>
+          <div class="colors__list">${colorPicker(p, `color-${p.id}`)}</div>
+        </fieldset>` : '';
     return `
       <article class="p-card p-card--wide" data-id="${p.id}">
-        <button type="button" class="p-card__media js-open" aria-label="Ver detalle de ${p.name}">${picture(p, { eager: true })}</button>
+        <button type="button" class="p-card__media js-open" aria-label="Ver detalle de ${p.name}">${picture(p, { eager })}</button>
         <div class="p-card__body">
           <h4 class="p-card__name"><button type="button" class="js-open">${p.name}</button></h4>
-          <p class="p-card__meta">${p.spirit}</p>
+          <p class="p-card__meta">${metaOf(p)}</p>
           <p class="p-card__desc">${p.desc}</p>
-        </div>
+        </div>${colors}
         <div class="p-card__buy">
           <span class="p-card__price">${fmt(p.price)}</span>
           ${addButton(p)}
@@ -361,37 +424,45 @@
       const items = PRODUCTS.filter(p => p.category === cat);
       const grid = $(`[data-grid="${cat}"]`);
       if (!grid) continue;
-      grid.innerHTML = items.map(p => cat === 'premium' ? wideTemplate(p) : cardTemplate(p)).join('')
-        + (cat !== 'premium' && items.length % 2 === 1 ? helpTile() : '');
-      const min = Math.min(...items.map(p => p.price));
+      const wide = cat === 'premium' || cat === 'accesorio';
+      grid.innerHTML = items.map(p => wide ? wideTemplate(p, { eager: cat === 'premium' }) : cardTemplate(p)).join('')
+        + (!wide && items.length % 2 === 1 ? helpTile() : '');
+      const prices = items.map(p => p.price);
+      const min = Math.min(...prices);
+      const samePrice = prices.every(v => v === min);
+      const word = cat === 'accesorio' ? ['producto', 'productos'] : ['sabor', 'sabores'];
       // con un solo producto la tarjeta ya muestra el precio: el encabezado queda limpio
       const head = $(`[data-head-count="${cat}"]`);
-      if (head) head.textContent = items.length === 1 ? '' : `${items.length} sabores`;
+      if (head) head.textContent = items.length === 1 ? '' : `${items.length} ${word[1]}`;
       const price = $(`[data-head-price="${cat}"]`);
-      if (price) price.textContent = items.length > 1 ? `${fmt(min)} c/u` : '';
+      if (price) price.textContent = items.length === 1 ? '' : samePrice ? `${fmt(min)} c/u` : `desde ${fmt(min)}`;
       const jump = $(`[data-count="${cat}"]`);
       if (jump) jump.textContent = items.length;
       const unit = $(`[data-unit="${cat}"]`);
-      if (unit) unit.textContent = items.length === 1 ? ' sabor' : ' sabores';
+      if (unit) unit.textContent = ` ${items.length === 1 ? word[0] : word[1]}`;
       const jumpPrice = $(`[data-jump-price="${cat}"]`);
-      if (jumpPrice) jumpPrice.textContent = fmt(min);
+      if (jumpPrice) jumpPrice.textContent = samePrice ? fmt(min) : `desde ${fmt(min)}`;
     }
+    const flavors = PRODUCTS.filter(isShot).length;
+    const extras = PRODUCTS.length - flavors;
     const sub = $('#saboresSub');
-    if (sub) sub.textContent = `${PRODUCTS.length} sabores en ${CATS.length} líneas`;
+    if (sub) sub.textContent = `${flavors} sabores${extras ? ` y ${extras} accesorios` : ''}`;
 
+    const colorIn = (card) => { const r = card && $('input[type="radio"]:checked', card); return r ? r.value : ''; };
     $('#sabores').addEventListener('click', (e) => {
       const card = e.target.closest('.p-card');
       if (!card) return;
       const product = byId(card.dataset.id);
       if (!product) return;
       const add = e.target.closest('.js-add');
-      if (add) { cart.addItem(product, 1, { btn: add }); return; }
+      if (add) { cart.addItem(product, 1, { btn: add, color: colorIn(card) }); return; }
       const open = e.target.closest('.js-open');
-      if (open) modal.open(product, open);
+      if (open) modal.open(product, open, colorIn(card));
     });
 
+    // «Desde» del hero: solo los frascos, no los accesorios
     const from = $('#fromPrice');
-    if (from) from.textContent = fmt(Math.min(...PRODUCTS.map(p => p.price)));
+    if (from) from.textContent = fmt(Math.min(...PRODUCTS.filter(isShot).map(p => p.price)));
   }
 
   /* ---------------------------------------------------------
@@ -400,38 +471,49 @@
   function initModal(cart) {
     const el = $('#productModal');
     const layer = { el, focus: () => $('#modalClose') };
-    let state = { product: null, qty: 1 };
+    let state = { product: null, qty: 1, color: '' };
+    const colorsBox = $('#modalColors');
 
     function sync() {
-      const { product, qty } = state;
+      const { product, qty, color } = state;
       $('#qtyValue').textContent = qty;
       $('#qtyMinus').disabled = qty <= 1;
       $('#qtyPlus').disabled = qty >= MAX_QTY;
-      $('#modalBuyWa').href = waLink(orderMessage([{ p: product, qty }]));
+      $('#modalBuyWa').href = waLink(orderMessage([{ p: product, qty, color }]));
     }
 
-    function open(product, trigger) {
-      state = { product, qty: 1 };
+    function open(product, trigger, color) {
+      const acc = product.category === 'accesorio';
+      state = { product, qty: 1, color: cleanColor(product, color) };
       $('#modalCat').textContent = CAT_LABEL[product.category] + (product.isNew ? ' · Nuevo' : '');
       $('#modalName').textContent = product.name;
       $('#modalPrice').textContent = fmt(product.price);
       $('#modalDesc').textContent = product.desc;
-      $('#specSpirit').textContent = product.spirit;
-      $('#specLine').textContent = CAT_LABEL[product.category];
-      $('#modalLegal').hidden = product.category === 'sinlicor';
-      $('#modalMedia').innerHTML = `<picture><source type="image/webp" srcset="assets/img/${product.img}.webp"><img src="assets/img/${product.img}.jpg" width="800" height="800" alt="XPLOSHOT ${product.name}"></picture>`;
+      const rows = acc
+        ? [['Colores', product.colors.join(', ')], ['Línea', CAT_LABEL[product.category]]]
+        : [['Licor', product.spirit], ['Contenido', '25 perlas'], ['Línea', CAT_LABEL[product.category]]];
+      $('#modalSpec').innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+      colorsBox.hidden = !product.colors;
+      $('.colors__list', colorsBox).innerHTML = product.colors ? colorPicker(product, 'modal-color', state.color) : '';
+      $('#modalLegal').hidden = !isShot(product) || product.category === 'sinlicor';
+      $('#modalMedia').innerHTML = `<picture><source type="image/webp" srcset="assets/img/${product.img}.webp"><img src="assets/img/${product.img}.jpg" width="800" height="800" alt="${acc ? product.name : `XPLOSHOT ${product.name}`}"></picture>`;
       sync();
       openLayer(layer, trigger);
     }
 
+    colorsBox.addEventListener('change', (e) => {
+      if (e.target.name !== 'modal-color') return;
+      state.color = e.target.value;
+      sync();
+    });
     $('#modalClose').addEventListener('click', () => closeLayer(layer));
     el.addEventListener('click', (e) => { if (e.target === el) closeLayer(layer); });
     $('#qtyMinus').addEventListener('click', () => { state.qty = Math.max(1, state.qty - 1); sync(); });
     $('#qtyPlus').addEventListener('click', () => { state.qty = Math.min(MAX_QTY, state.qty + 1); sync(); });
     $('#modalAddCart').addEventListener('click', () => {
-      const { product, qty } = state;
+      const { product, qty, color } = state;
       closeLayer(layer);
-      cart.addItem(product, qty);
+      cart.addItem(product, qty, { color });
     });
 
     return { open };
@@ -562,7 +644,8 @@
       if (item.cell != null) taken.delete(item.cell);
       item.cell = null;
       let i = -1;
-      for (let t = 0; t < 60; t++) {
+      // ventana de 0 px (pestaña oculta): no hay celdas
+      for (let t = 0; t < 60 && cells.length; t++) {
         const c = Math.floor(Math.random() * cells.length);
         if (!taken.has(c) && isFree(cells[c][0], cells[c][1])) { i = c; break; }
       }
@@ -744,11 +827,12 @@
     if (year) year.textContent = new Date().getFullYear();
 
     initLoader();
-    initHexBg();
     initMenu();
     const cart = initCart();
     const modal = initModal(cart);
     initCatalog(cart, modal);
+    // decorativo: va después de la tienda para que un fallo aquí nunca la deje vacía
+    try { initHexBg(); } catch (e) { /* sin fondo animado */ }
     initWaLinks();
     initWaFloat();
     initLineSpy();
