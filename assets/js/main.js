@@ -45,7 +45,7 @@
       desc: 'Arándanos, sin alcohol.' },
 
     // Accesorios: precios confirmados por el cliente (2026-10-21)
-    { id: 'accesorio-cuchara', category: 'accesorio', name: 'Cuchara perforada', meta: '6 colores', price: 1900, img: 'p-accesorio-cuchara',
+    { id: 'accesorio-cuchara', category: 'accesorio', name: 'Cuchara perforada', meta: '6 colores', price: 2300, img: 'p-accesorio-cuchara',
       colors: ['Azul', 'Dorado', 'Negro', 'Tornasol', 'Oro rosa', 'Bronce'],
       desc: 'Para servir esferas moleculares con precisión: el perforado escurre el exceso de líquido.' },
     { id: 'accesorio-soportes', category: 'accesorio', name: 'Soportes Xploshot', meta: 'Transparente o azul', price: 65000, img: 'p-accesorio-soportes',
