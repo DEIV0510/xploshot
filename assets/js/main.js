@@ -48,7 +48,7 @@
     { id: 'accesorio-cuchara', category: 'accesorio', name: 'Cuchara perforada', meta: '6 colores', price: 65000, img: 'p-accesorio-cuchara',
       colors: ['Azul', 'Dorado', 'Negro', 'Tornasol', 'Oro rosa', 'Bronce'],
       desc: 'Para servir esferas moleculares con precisión: el perforado escurre el exceso de líquido.' },
-    { id: 'accesorio-soportes', category: 'accesorio', name: 'Soportes Xploshot', meta: 'Transparente o azul', price: 2300, img: 'p-accesorio-soportes',
+    { id: 'accesorio-soportes', category: 'accesorio', name: 'Soportes Xploshot', meta: 'Transparente o azul', price: 1900, img: 'p-accesorio-soportes',
       colors: ['Transparente', 'Azul'],
       desc: 'Cucharitas especiales para servir y disfrutar tus shots moleculares en eventos y fiestas.' },
   ];
